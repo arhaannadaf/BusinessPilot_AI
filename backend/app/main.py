@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.config.settings import settings
+from app.core.config.settings import settings
 from app.shared.logging import logger
 from app.api.router import router
 from app.core.exceptions import generic_exception_handler 

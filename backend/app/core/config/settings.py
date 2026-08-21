@@ -6,13 +6,13 @@ class Settings(BaseSettings):
     app_name:str = "BusinessPilot AI"
     app_version: str = "0.1.0"
 
-    debug: bool = True
+    DEBUG: bool = True
 
     host: str = "127.0.0.1"
 
     port: int = 8000
 
-    database_url : str
+    DATABASE_URL : str
 
     secret_key : str
 

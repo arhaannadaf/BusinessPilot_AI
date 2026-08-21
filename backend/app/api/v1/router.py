@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from backend.app.api.monitoring_router import router as monitoring_router
+from app.api.monitoring_router import router as monitoring_router
 
 
 router = APIRouter()
