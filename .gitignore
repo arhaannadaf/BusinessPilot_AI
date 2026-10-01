@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+#Virtual Environment
+.venv/
+
+#Environment
+.env
+
+#VS CODE
+.vscode/
+
+# PYtest
+.pytest_cache/
+
+#Ruff
+.reff_cache/
+
+#MYPy
+.mypy_cache/
+
+#Coverage
+.coverage
+htmlcov/
+
+#logs
+*.log
+
+#build
+dist/
+build/
+*.egg-info/
+
+#macOS
+.DS_Store
+
+#WIndows
+Thumbs.db
+
+#Node
+frontend/node_modules/
+frontend/next/
+
+#ocker
+*.pid
+
