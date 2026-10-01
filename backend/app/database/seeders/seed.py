@@ -10,6 +10,7 @@ from app.database.models.reference.country import Country
 from app.database.models.reference.currency import Currency
 
 from app.database.models.identity.organization import Organization
+from app.database.models.identity.role import Role
 # Seed Data
 from app.database.seeders.reference.industries import INDUSTRIES
 from app.database.seeders.reference.company_statuses import COMPANY_STATUSES
@@ -18,6 +19,8 @@ from app.database.seeders.reference.countries import COUNTRIES
 from app.database.seeders.reference.currencies import CURRENCIES
 
 from app.database.seeders.development.organizations import seed_organizations as ORGANIZATIONS
+from app.database.seeders.development.users import seed_user as user
+from app.database.seeders.identity.roles import ROLES
 async def run_seed():
     async with SessionLocal() as session:
 
@@ -27,8 +30,10 @@ async def run_seed():
             await seed_model(session, CompanySize, COMPANY_SIZES)
             await seed_model(session, Country, COUNTRIES)
             await seed_model(session, Currency, CURRENCIES)
+            await seed_model(session,Role,ROLES,unique_field="name",)
 
             await ORGANIZATIONS(session)
+            await user(session)
 
             await session.commit()
 

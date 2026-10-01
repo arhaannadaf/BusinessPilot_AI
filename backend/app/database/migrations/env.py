@@ -69,6 +69,10 @@ def do_run_migrations(connection):
         compare_type=True,
     )
 
+
+    with context.begin_transaction():
+        context.run_migrations()
+
 async def run_async_migrations() -> None:
     """
     Run migrations using AsyncEngine.

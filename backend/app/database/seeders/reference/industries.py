@@ -31,7 +31,7 @@ INDUSTRIES = [
         "display_order": 6
     },
     {
-        "name": "Logistucs",
+        "name": "Logistics",
         "code": "LOGISTICS",
         "display_order": 7
     },

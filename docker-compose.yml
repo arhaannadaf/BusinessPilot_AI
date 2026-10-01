@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: businesspilot-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: businesspilot
+      POSTGRES_PASSWORD: Sanji@1322M
+      POSTGRES_DB: businesspilot_db
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - businesspilot_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  businesspilot_postgres_data:
