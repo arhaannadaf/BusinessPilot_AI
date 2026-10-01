@@ -1,6 +1,6 @@
-from sqlalchemy import text 
-from sqlalchemy.orm import Session 
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
-def check_database(db: Session) -> bool:
-    db.execute(text("SELECT 1"))
+async def check_database(db: AsyncSession) -> bool:
+    await db.execute(text("SELECT 1"))
     return True

@@ -1,12 +1,14 @@
-from collections.abc import Generator
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from sqlalchemy.orm import Session
+from app.database.session import get_db
+from app.modules.crm.company.CompanyValidator.CompanyRepository.repository import CompanyRepository
+from app.modules.crm.company.service import CompanyService
 
-from app.database.session import SessionLocal
 
-def get_dv() -> Generator[Session,None,None]:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+async def get_company_service(
+    db: AsyncSession = Depends(get_db),
+) -> CompanyService:
+    return CompanyService(
+        CompanyRepository(db)
+    )
