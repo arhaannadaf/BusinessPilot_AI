@@ -16,6 +16,7 @@ class OutcomeMetricResponse(BaseModel):
     id: UUID
     outcome_id: UUID
     metric_name: str
+    direction:str
     expected_value: float
     actual_value: float
     unit: str | None

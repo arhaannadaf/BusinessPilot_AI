@@ -16,3 +16,4 @@ from app.database.models.decision.recommendation.recommendation_history import R
 from app.database.models.decision.execution.execution import Execution
 from app.database.models.decision.outcome.outcome import Outcome
 from app.database.models.decision.outcome.outcome_metric import OutcomeMetric
+from app.database.models.decision.feedback.decision_feedback import DecisionFeedback

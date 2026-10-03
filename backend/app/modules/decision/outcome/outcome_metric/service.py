@@ -59,15 +59,29 @@ class OutcomeMetricService:
         )
 
         expected_value = None
+        direction = None
+
+        recommended_option_id = str(
+            recommendation.recommended_option_id
+        )
 
         for metric in expected_metrics:
-            if metric.get("metric_name") == metric_name:
+            if (
+                metric.get("metric_name") == metric_name
+                and str(metric.get("option_id")) == recommended_option_id
+            ):
                 expected_value = metric.get("adjusted_value")
+                direction = metric.get("direction")
                 break
 
         if expected_value is None:
             raise ValueError(
                 f"Expected value not found for metric: {metric_name}"
+            )
+
+        if direction is None:
+            raise ValueError(
+                f"Direction not found for metric: {metric_name}"
             )
 
         variance = actual_value - expected_value
@@ -83,6 +97,7 @@ class OutcomeMetricService:
         metric = OutcomeMetric(
             outcome_id=outcome_id,
             metric_name=metric_name,
+            direction=direction,
             expected_value=expected_value,
             actual_value=actual_value,
             unit=unit,
