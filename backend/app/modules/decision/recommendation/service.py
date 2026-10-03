@@ -128,6 +128,77 @@ class RecommendationService:
 
         return await self.repository.create(recommendation)
 
+    async def create_scenario_recommendation(
+        self,
+        decision_id: UUID,
+        organization_id: UUID,
+        recommended_option_id: UUID,
+        score: float,
+        weights: dict[str, float],
+        scenario_metrics: list[dict],
+    ) -> Recommendation:
+
+        existing_recommendation = (
+            await self.repository.get_active_by_decision(
+                decision_id=decision_id,
+            )
+        )
+
+        if existing_recommendation:
+            existing_recommendation.is_active = False
+            await self.repository.update(existing_recommendation)
+
+        result = await self.session.execute(
+            select(Decision).where(
+                Decision.id == decision_id,
+                Decision.organization_id == organization_id,
+            )
+        )
+
+        decision = result.scalar_one_or_none()
+
+        if decision is None:
+            raise ValueError(
+                "Decision not found for this organization."
+            )
+
+        result = await self.session.execute(
+            select(DecisionOption).where(
+                DecisionOption.id == recommended_option_id,
+                DecisionOption.decision_id == decision_id,
+            )
+        )
+
+        option = result.scalar_one_or_none()
+
+        if option is None:
+            raise ValueError(
+                "Recommendation option does not belong to this decision."
+            )
+
+        recommendation = Recommendation(
+            decision_id=decision_id,
+            recommended_option_id=recommended_option_id,
+            status="PROPOSED",
+            rationale=(
+                "This recommendation was generated from the evaluated "
+                "scenario using the Decision Engine on scenario-adjusted "
+                "metrics."
+            ),
+            confidence=None,
+            supporting_metrics={
+                "decision_engine_score": score,
+                "weights": weights,
+                "evaluation_type": "scenario",
+                "expected_metric": scenario_metrics,
+            },
+            source="scenario_decision_engine",
+        )
+
+        return await self.repository.create(
+            recommendation
+        )
+
     async def get_recommendation(
         self,
         recommendation_id: UUID,
