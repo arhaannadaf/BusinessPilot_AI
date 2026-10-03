@@ -38,6 +38,19 @@ class RecommendationRepository:
 
         return result.scalar_one_or_none()
 
+    async def get_by_id_only(
+        self,
+        recommendation_id: UUID,
+    ) -> Recommendation | None:
+
+        result = await self.session.execute(
+            select(Recommendation).where(
+                Recommendation.id == recommendation_id
+            )
+        )
+
+        return result.scalar_one_or_none()
+
     async def list_by_decision(
         self,
         decision_id: UUID,

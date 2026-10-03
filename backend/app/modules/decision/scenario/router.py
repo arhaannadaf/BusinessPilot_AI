@@ -2,13 +2,22 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.api.dependencies.scenario import get_scenario_service
+from app.api.dependencies.scenario import (
+    get_scenario_service,
+    get_scenario_engine_service
+    )
+
 from app.modules.decision.scenario.schemas import(
     ScenarioCreate,
     ScenarioUpdate,
     ScenarioResponse,
 )
+from app.modules.decision.scenario.engine.schemas import(
+    ScenarioEvaluationRequest,
+    ScenarioEvaluationResult,
+)
 from app.modules.decision.scenario.service import ScenarioService
+from app.modules.decision.scenario.engine.service import ScenarioEngineService
 
 router = APIRouter(
     prefix="/scenarios",
@@ -140,3 +149,27 @@ async def delete_scenario(
         )
 
     return None
+
+@router.post(
+    "/{scenario_id}/decisions/{decision_id}/evaluate",
+    response_model=ScenarioEvaluationResult,
+)
+async def evaluate_scenario(
+    scenario_id: UUID,
+    decision_id: UUID,
+    request: ScenarioEvaluationRequest,
+    service: ScenarioEngineService = Depends(
+        get_scenario_engine_service
+    ),
+):
+    if request.scenario_id != scenario_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Scenario ID in path and request body must match.",
+        )
+
+    return await service.evaluate_scenario(
+        scenario_id=scenario_id,
+        decision_id=decision_id,
+        request=request,
+    )
