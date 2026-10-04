@@ -17,3 +17,4 @@ from app.database.models.decision.execution.execution import Execution
 from app.database.models.decision.outcome.outcome import Outcome
 from app.database.models.decision.outcome.outcome_metric import OutcomeMetric
 from app.database.models.decision.feedback.decision_feedback import DecisionFeedback
+from app.database.models.decision.learning.decision_learning import DecisionLearning
