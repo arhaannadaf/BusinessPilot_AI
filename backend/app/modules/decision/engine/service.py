@@ -15,7 +15,9 @@ from app.modules.decision.engine.schemas import (
 from app.modules.decision.decision.repository import DecisionRepository
 from app.modules.decision.option.repository import DecisionOptionRepository
 from app.modules.decision.metric.repository import DecisionMetricRepository
-
+from app.modules.decision.learning.repository import (
+    DecisionLearningRepository,
+)
 
 class DecisionEngineService:
     def __init__(self, session: AsyncSession):
@@ -23,7 +25,51 @@ class DecisionEngineService:
         self.decision_repository = DecisionRepository(session)
         self.option_repository = DecisionOptionRepository(session)
         self.metric_repository = DecisionMetricRepository(session)
+        self.learning_repository = DecisionLearningRepository(session)
         self.engine = DecisionEngine()
+
+    def calculate_learning_scores(
+        self,
+        learning_records,
+    ) -> dict[UUID, float]:
+
+        learning_scores: dict[UUID, list[float]] = {}
+
+        for learning in learning_records:
+
+            if learning.decision_option_id is None:
+                continue
+
+            if learning.variance_percentage is None:
+                continue
+
+            variance = float(learning.variance_percentage)
+
+            if learning.direction == "increase":
+                adjusted_variance = variance
+
+            elif learning.direction == "decrease":
+                adjusted_variance = -variance
+
+            else:
+                continue
+
+            adjusted_variance = max(
+                -50.0,
+                min(50.0, adjusted_variance),
+            )
+
+            score = 0.5 + (adjusted_variance / 100.0)
+
+            learning_scores.setdefault(
+                learning.decision_option_id,
+                [],
+            ).append(score)
+
+        return {
+            option_id: sum(scores) / len(scores)
+            for option_id, scores in learning_scores.items()
+        }
 
     async def evaluate_decision(
             self,
@@ -45,6 +91,13 @@ class DecisionEngineService:
             raise ValueError(
                 "Decison not found."
             )
+
+        learning_records = await self.learning_repository.get_by_decision(
+            decision.id
+        )
+        learning_scores = self.calculate_learning_scores(
+    learning_records
+)
 
         options = await self.option_repository.list_by_decision(
             decision_id=decision_id
@@ -130,17 +183,56 @@ class DecisionEngineService:
                 option_inputs
             )
         )
+        learning_weight = request.learning_weight
 
-        ranked_options: list[RankedOption] = (
-            self.engine.rank_options(
-                scores
+        if learning_weight < 0 or learning_weight > 1:
+            raise ValueError(
+                "Learning weight must be between 0 and 1."
             )
+
+        if learning_weight == 0 or not learning_scores:
+            final_scores = scores
+
+        else:
+            final_scores = [
+                OptionScore(
+                    option_id=score.option_id,
+                    score=(
+                        score.score * (1 - learning_weight)
+                        + learning_scores.get(
+                            score.option_id,
+                            0.5,
+                        ) * learning_weight
+                    ),
+                )
+                for score in scores
+            ]
+
+        ranked_options = self.engine.rank_options(
+            final_scores
         )
 
-        best_option: BestOption = (
-            self.engine.select_best_option(
-                ranked_options
-            )
+        best_option = self.engine.select_best_option(
+            ranked_options
         )
 
-        return best_option
+        selected_option_id = best_option.option_id
+
+        base_score = next(
+            score.score
+            for score in scores
+            if score.option_id == selected_option_id
+        )
+
+        learning_score = learning_scores.get(
+            selected_option_id,
+            0.5,
+        )
+
+        return BestOption(
+            option_id=selected_option_id,
+            score=best_option.score,
+            base_score=base_score,
+            learning_score=learning_score,
+            learning_weight=learning_weight,
+        )

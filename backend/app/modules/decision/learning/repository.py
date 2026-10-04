@@ -18,13 +18,25 @@ class DecisionLearningRepository:
         decision_id: UUID,
         learning_type: str,
         insight: str,
+        decision_option_id: UUID | None = None,
+        metric_name: str | None = None,
+        performance: str | None = None,
+        variance_percentage: float | None = None,
+        direction: str | None = None,
+
     ) -> DecisionLearning:
 
         learning = DecisionLearning(
-            decision_id=decision_id,
-            learning_type=learning_type,
-            insight=insight,
-        )
+        decision_id=decision_id,
+        decision_option_id=decision_option_id,
+        learning_type=learning_type,
+        metric_name=metric_name,
+        performance=performance,
+        direction=direction,
+        variance_percentage=variance_percentage,
+        insight=insight,
+
+    )
 
         self.session.add(learning)
         await self.session.flush()

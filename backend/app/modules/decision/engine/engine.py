@@ -2,7 +2,6 @@ from app.modules.decision.engine.schemas import (
     OptionInput,
     OptionScore,
     RankedOption,
-    BestOption,
 )
 
 
@@ -155,9 +154,9 @@ class DecisionEngine:
         return ranked_option
 
     def select_best_option(
-            self,
-            ranked_options: list[RankedOption],
-    ) -> BestOption:
+        self,
+        ranked_options: list[RankedOption],
+    ) -> RankedOption:
 
         if not ranked_options:
             raise ValueError(
@@ -166,7 +165,8 @@ class DecisionEngine:
 
         best_option = ranked_options[0]
 
-        return BestOption(
+        return RankedOption(
             option_id=best_option.option_id,
             score=best_option.score,
+            rank=best_option.rank,
         )
