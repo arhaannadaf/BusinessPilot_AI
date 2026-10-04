@@ -30,6 +30,7 @@ class BestOption(BaseModel):
 
 class DecisionEvaluationRequest(BaseModel):
     weights: dict[str, float]
+    learning_weight: float = 0.0
 
     @field_validator("weights")
     @classmethod

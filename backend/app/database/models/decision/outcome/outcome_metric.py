@@ -24,6 +24,11 @@ class OutcomeMetric(BaseModel):
         String(255),
         nullable=False,
     )
+    
+    direction: Mapped[str] = mapped_column(
+    String(20),
+    nullable=False,
+)
 
     expected_value: Mapped[float] = mapped_column(
         Numeric,

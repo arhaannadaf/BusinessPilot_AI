@@ -16,7 +16,9 @@ from app.modules.decision.recommendation.router import router as recommendation_
 from app.modules.decision.execution.router import router as execution_router
 from app.modules.decision.outcome.router import router as outcome_router
 from app.modules.decision.outcome.outcome_metric.router import router as outcome_metric_router
-
+from app.modules.decision.outcome.analysis.router import router as outcome_analysis_router
+from app.modules.decision.feedback.router import router as feedback_router
+from app.modules.decision.learning.router import router as decision_learning_router
 
 router = APIRouter()
 
@@ -53,4 +55,10 @@ router.include_router(execution_router)
 router.include_router(outcome_router)
 
 router.include_router(outcome_metric_router)
+
+router.include_router(outcome_analysis_router)
+
+router.include_router(feedback_router)
+
+router.include_router(decision_learning_router)
 
