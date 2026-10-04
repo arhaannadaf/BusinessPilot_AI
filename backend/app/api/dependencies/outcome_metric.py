@@ -29,4 +29,5 @@ def get_outcome_metric_service(
         outcome_repository=outcome_repository,
         execution_repository=execution_repository,
         recommendation_repository=recommendation_repository,
+        session=session
     )

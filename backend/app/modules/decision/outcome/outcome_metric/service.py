@@ -1,11 +1,14 @@
 from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.models.decision.outcome.outcome_metric import OutcomeMetric
 from app.modules.decision.outcome.repository import OutcomeRepository
 from app.modules.decision.outcome.outcome_metric.repository import OutcomeMetricRepository
 from app.modules.decision.execution.repository import ExecutionRepository
 from app.modules.decision.recommendation.repository import RecommendationRepository
-
+from app.modules.decision.metric.repository import (
+    DecisionMetricRepository,
+)
 class OutcomeMetricService:
 
     def __init__(
@@ -14,11 +17,13 @@ class OutcomeMetricService:
         outcome_repository: OutcomeRepository,
         execution_repository: ExecutionRepository,
         recommendation_repository: RecommendationRepository,
+        session: AsyncSession,
     ):
         self.outcome_metric_repository = outcome_metric_repository
         self.outcome_repository = outcome_repository
         self.execution_repository = execution_repository
         self.recommendation_repository = recommendation_repository
+        self.metric_repository = DecisionMetricRepository(session)
 
     async def create_metric(
         self,
@@ -53,26 +58,41 @@ class OutcomeMetricService:
 
         supporting_metrics = recommendation.supporting_metrics or {}
 
-        expected_metrics = supporting_metrics.get(
-            "expected_metric",
-            [],
+        expected_metrics = (
+            recommendation.supporting_metrics.get(
+                "expected_metric",
+                []
+            )
         )
 
         expected_value = None
         direction = None
 
-        recommended_option_id = str(
-            recommendation.recommended_option_id
-        )
+        recommended_option_id = recommendation.recommended_option_id
 
+        # Scenario recommendation
         for metric in expected_metrics:
             if (
                 metric.get("metric_name") == metric_name
-                and str(metric.get("option_id")) == recommended_option_id
+                and str(metric.get("option_id")) == str(
+                    recommended_option_id
+                )
             ):
                 expected_value = metric.get("adjusted_value")
                 direction = metric.get("direction")
                 break
+
+        # Normal decision recommendation
+        if expected_value is None:
+            decision_metrics = await self.metric_repository.list_by_option(
+                decision_option_id=recommended_option_id,
+            )
+
+            for metric in decision_metrics:
+                if metric.metric_name == metric_name:
+                    expected_value = metric.value
+                    direction = metric.direction
+                    break
 
         if expected_value is None:
             raise ValueError(

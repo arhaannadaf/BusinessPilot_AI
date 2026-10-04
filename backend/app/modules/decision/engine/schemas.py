@@ -27,6 +27,9 @@ class RankedOption(BaseModel):
 class BestOption(BaseModel):
     option_id: UUID
     score: float
+    base_score: float
+    learning_score: float
+    learning_weight: float
 
 class DecisionEvaluationRequest(BaseModel):
     weights: dict[str, float]

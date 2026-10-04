@@ -21,7 +21,12 @@ from app.modules.decision.outcome.repository import (
 from app.modules.decision.outcome.outcome_metric.repository import (
     OutcomeMetricRepository,
 )
-
+from app.modules.decision.execution.repository import (
+    ExecutionRepository,
+)
+from app.modules.decision.recommendation.repository import (
+    RecommendationRepository,
+)
 
 async def get_decision_learning_service(
     session: AsyncSession = Depends(get_db),
@@ -47,10 +52,15 @@ async def get_decision_learning_service(
         outcome_repository=outcome_repository,
         outcome_metric_repository=outcome_metric_repository,
     )
+    execution_repository = ExecutionRepository(session)
+
+    recommendation_repository = RecommendationRepository(session)
 
     return DecisionLearningService(
-        learning_repository=learning_repository,
-        feedback_repository=feedback_repository,
-        outcome_repository=outcome_repository,
-        outcome_analysis_service=outcome_analysis_service,
-    )
+    learning_repository=learning_repository,
+    feedback_repository=feedback_repository,
+    outcome_repository=outcome_repository,
+    outcome_analysis_service=outcome_analysis_service,
+    execution_repository=execution_repository,
+    recommendation_repository=recommendation_repository,
+)

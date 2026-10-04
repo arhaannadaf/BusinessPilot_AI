@@ -65,6 +65,7 @@ async def create_recommendation(
 async def generate_recommendation(
     decision_id: UUID,
     weights: dict[str, float],
+    learning_weight: float = 0.0,
     service: RecommendationService = Depends(get_recommendation_service),
 ):
     try:
@@ -72,6 +73,7 @@ async def generate_recommendation(
         decision_id=decision_id,
         organization_id="f98e1fc6-ca56-488e-988d-2fbace1c7640",
         weights=weights,
+        learning_weight=learning_weight,
     )
     except ValueError as exc:
         raise HTTPException(

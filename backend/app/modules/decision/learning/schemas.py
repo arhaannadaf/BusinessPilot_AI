@@ -11,7 +11,12 @@ class DecisionLearningCreate(BaseModel):
 class DecisionLearningResponse(BaseModel):
     id: UUID
     decision_id: UUID
+    decision_option_id: UUID | None
     learning_type: str
+    metric_name: str | None
+    performance: str | None
+    direction: str | None
+    variance_percentage: float | None
     insight: str
 
     model_config = {
