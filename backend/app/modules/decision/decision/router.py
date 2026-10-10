@@ -110,7 +110,7 @@ async def get_decision(
 
     if decision_id is None:
         raise HTTPException(
-            status_code==status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Decision Not found",
         )
 

@@ -19,6 +19,9 @@ from app.modules.decision.outcome.outcome_metric.router import router as outcome
 from app.modules.decision.outcome.analysis.router import router as outcome_analysis_router
 from app.modules.decision.feedback.router import router as feedback_router
 from app.modules.decision.learning.router import router as decision_learning_router
+from app.modules.data.source.router import router as data_source_router
+from app.modules.data.imports.router import router as data_import_router
+from app.modules.data.profiling.router import router as data_profiling_router
 
 router = APIRouter()
 
@@ -62,3 +65,8 @@ router.include_router(feedback_router)
 
 router.include_router(decision_learning_router)
 
+router.include_router(data_source_router)
+
+router.include_router(data_import_router)
+
+router.include_router(data_profiling_router)
