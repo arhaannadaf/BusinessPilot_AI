@@ -1,7 +1,7 @@
 
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, Index
+from sqlalchemy import ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -26,6 +26,16 @@ class StagingRow(BaseModel):
 
     row_number: Mapped[int] = mapped_column(
         nullable=False,
+    )
+
+    source_sheet_name: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    source_row_number: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
     )
 
     row_data: Mapped[dict] = mapped_column(

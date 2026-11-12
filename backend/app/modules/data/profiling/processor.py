@@ -1,21 +1,29 @@
 
-from collections import Counter
-from datetime import date, datetime
-from decimal import Decimal
 from typing import Any
+
+from app.shared.column_profile import ColumnProfileAccumulator, value_identity
 
 
 class DataProfilingProcessor:
     """Analyze staged tabular data and generate a quality profile."""
 
-    def profile(self, rows: list[dict[str, Any]]) -> dict[str, Any]:
+    def profile(
+        self,
+        rows: list[dict[str, Any]],
+        source_sheet_name: str | None = None,
+    ) -> dict[str, Any]:
         if not rows:
             return {
                 "row_count": 0,
                 "column_count": 0,
                 "columns": [],
                 "duplicate_rows": 0,
+                "duplicate_status": "NO_DUPLICATES",
+                "total_cells": 0,
+                "completeness_percentage": 0.0,
+                "overall_quality_status": "COMPLETE",
             }
+                    
 
         column_names = list(
             dict.fromkeys(
@@ -28,103 +36,81 @@ class DataProfilingProcessor:
         column_profiles = []
 
         for column in column_names:
-            values = [row.get(column) for row in rows]
-
-            missing_count = sum(
-                value is None or (
-                    isinstance(value, str) and not value.strip()
-                )
-                for value in values
-            )
-
-            non_missing = [
-                value for value in values
-                if value is not None
-                and not (isinstance(value, str) and not value.strip())
-            ]
-
-            column_profiles.append({
+            accumulator = ColumnProfileAccumulator()
+            for row in rows:
+                accumulator.add(row.get(column))
+            statistics = accumulator.as_dict(len(rows))
+            missing_pct = statistics["missing_percentage"]
+            column_profile = {
                 "column_name": column,
-                "inferred_type": self._infer_type(non_missing),
-                "missing_count": missing_count,
-                "missing_percentage": round(
-                    missing_count / len(rows) * 100, 2
-                ),
-                "distinct_count": len({
-                    str(value) for value in non_missing
-                }),
-            })
+                **statistics,
+                "missing_percentage": missing_pct,
+                "quality_status": (
+                    "COMPLETE" if missing_pct == 0 
+                    else "MINOR_ISSUES" if missing_pct <= 5 
+                    else "MODERATE_ISSUES" if missing_pct <= 20 
+                    else "MAJOR_ISSUES"
+                ), 
+            }
+            if source_sheet_name is not None:
+                column_profile["source_sheet_name"] = source_sheet_name
+            column_profiles.append(column_profile)
 
-        row_signatures = [
-            tuple(
-                (column, str(row.get(column)))
-                for column in column_names
-            )
-            for row in rows
+        quality_statuses = [
+            column_profile["quality_status"]
+            for column_profile in column_profiles
         ]
 
-        duplicate_rows = len(row_signatures) - len(
-            set(row_signatures)
+        if "MAJOR_ISSUES" in quality_statuses:
+                overall_quality_status = "MAJOR_ISSUES"
+        elif "MODERATE_ISSUES" in quality_statuses:
+                overall_quality_status = "MODERATE_ISSUES"
+        elif "MINOR_ISSUES" in quality_statuses:
+                overall_quality_status = "MINOR_ISSUES"
+        else:
+                overall_quality_status = "COMPLETE"
+                
+        total_cells = len(rows) * len(column_names)
+
+        missing_cells = sum(
+            column_profile["missing_count"]
+            for column_profile in column_profiles
         )
+
+        completeness_percentage = (
+            round(
+                ((total_cells - missing_cells) / total_cells) * 100,
+                2,
+            )
+            if total_cells > 0
+            else 0.0
+        )
+
+        seen_rows: set[tuple[tuple[str, tuple[Any, ...]], ...]] = set()
+        duplicate_rows = 0
+        for row in rows:
+            signature = tuple(
+                (column, value_identity(row.get(column)))
+                for column in column_names
+            )
+            if signature in seen_rows:
+                duplicate_rows += 1
+            else:
+                seen_rows.add(signature)
 
         return {
             "row_count": len(rows),
             "column_count": len(column_names),
             "columns": column_profiles,
             "duplicate_rows": duplicate_rows,
-        }
+            "duplicate_status": 
+               ( "NO_DUPLICATES"
+                if duplicate_rows == 0
+                else "DUPLICATES_FOUND"
+                        ),
+            "total_cells": total_cells,
+            "completeness_percentage": completeness_percentage,
+            "overall_quality_status": overall_quality_status,
+            
+                }
 
-    @staticmethod
-    def _infer_type(values: list[Any]) -> str:
-        if not values:
-            return "unknown"
-
-        def classify(value: Any) -> str:
-            if isinstance(value, bool):
-                return "boolean"
-            if isinstance(value, (datetime, date)):
-                return "date"
-            if isinstance(value, int):
-                return "integer"
-            if isinstance(value, (float, Decimal)):
-                return "decimal"
-
-            text = str(value).strip()
-
-            if text.lower() in {"true", "false"}:
-                return "boolean"
-
-            try:
-                int(text)
-                return "integer"
-            except ValueError:
-                pass
-
-            try:
-                float(text)
-                return "decimal"
-            except ValueError:
-                pass
-
-            for fmt in (
-                "%Y-%m-%d",
-                "%Y/%m/%d",
-                "%d-%m-%Y",
-                "%m/%d/%Y",
-            ):
-                try:
-                    datetime.strptime(text, fmt)
-                    return "date"
-                except ValueError:
-                    continue
-
-            return "text"
-
-        types = [classify(value) for value in values]
-        counts = Counter(types)
-
-        # Report a single type only when all non-missing values agree.
-        if len(counts) == 1:
-            return types[0]
-
-        return "mixed"

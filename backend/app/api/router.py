@@ -1,27 +1,27 @@
 from fastapi import APIRouter
 
 from app.api.v1.router import router as v1_router
-
 from app.modules.crm.company.router import router as company_router
-from app.modules.reference.industry.router import router as industry_router
+from app.modules.data.imports.router import router as data_import_router
+from app.modules.data.profiling.router import router as data_profiling_router
+from app.modules.data.source.router import router as data_source_router
+from app.modules.decision.decision.router import router as decision_router
+from app.modules.decision.execution.router import router as execution_router
+from app.modules.decision.feedback.router import router as feedback_router
+from app.modules.decision.learning.router import router as decision_learning_router
+from app.modules.decision.metric.router import router as decision_metric_router
+from app.modules.decision.option.router import router as decision_option_router
+from app.modules.decision.outcome.analysis.router import router as outcome_analysis_router
+from app.modules.decision.outcome.outcome_metric.router import router as outcome_metric_router
+from app.modules.decision.outcome.router import router as outcome_router
+from app.modules.decision.recommendation.router import router as recommendation_router
+from app.modules.decision.scenario.router import router as scenario_router
+from app.modules.identity.router import router as auth_router
 from app.modules.reference.company_size.router import router as company_size_router
 from app.modules.reference.company_status.router import router as company_status_router
 from app.modules.reference.country.router import router as country_router
 from app.modules.reference.currency.router import router as currency_router
-from app.modules.decision.scenario.router import router as scenario_router
-from app.modules.decision.decision.router import router as decision_router
-from app.modules.decision.option.router import router as decision_option_router
-from app.modules.decision.metric.router import router as decision_metric_router
-from app.modules.decision.recommendation.router import router as recommendation_router
-from app.modules.decision.execution.router import router as execution_router
-from app.modules.decision.outcome.router import router as outcome_router
-from app.modules.decision.outcome.outcome_metric.router import router as outcome_metric_router
-from app.modules.decision.outcome.analysis.router import router as outcome_analysis_router
-from app.modules.decision.feedback.router import router as feedback_router
-from app.modules.decision.learning.router import router as decision_learning_router
-from app.modules.data.source.router import router as data_source_router
-from app.modules.data.imports.router import router as data_import_router
-from app.modules.data.profiling.router import router as data_profiling_router
+from app.modules.reference.industry.router import router as industry_router
 
 router = APIRouter()
 
@@ -70,3 +70,5 @@ router.include_router(data_source_router)
 router.include_router(data_import_router)
 
 router.include_router(data_profiling_router)
+
+router.include_router(auth_router)

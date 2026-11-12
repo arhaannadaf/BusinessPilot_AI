@@ -18,6 +18,7 @@ __pycache__/
 
 #Ruff
 .reff_cache/
+.ruff_cache
 
 #MYPy
 .mypy_cache/
@@ -47,3 +48,5 @@ frontend/next/
 #ocker
 *.pid
 
+#Agents
+.agents

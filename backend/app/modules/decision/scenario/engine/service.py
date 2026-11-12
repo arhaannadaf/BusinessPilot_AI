@@ -1,31 +1,30 @@
 from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.models.decision.decision import Decision
 from app.database.models.decision.option import DecisionOption
-from app.modules.decision.metric.repository import DecisionMetricRepository
-from app.modules.decision.recommendation.service import RecommendationService
-from app.modules.decision.recommendation.repository import RecommendationRepository
-
 from app.modules.decision.engine.engine import DecisionEngine
-
-from app.modules.decision.scenario.engine.engine import (
-    ScenarioEngine,
-    ScenarioMetricResult,
-    )
-
-from app.modules.decision.scenario.engine.schemas import (
-    ScenarioEvaluationRequest,
-    ScenarioEvaluationResult,
-)
 from app.modules.decision.engine.schemas import (
+    BestOption,
     MetricInput,
     OptionInput,
     OptionScore,
     RankedOption,
-    BestOption,
 )
+from app.modules.decision.metric.repository import DecisionMetricRepository
+from app.modules.decision.recommendation.repository import RecommendationRepository
+from app.modules.decision.recommendation.service import RecommendationService
+from app.modules.decision.scenario.engine.engine import (
+    ScenarioEngine,
+    ScenarioMetricResult,
+)
+from app.modules.decision.scenario.engine.schemas import (
+    ScenarioEvaluationRequest,
+    ScenarioEvaluationResult,
+)
+
 
 class ScenarioEngineService:
 
@@ -44,15 +43,17 @@ class ScenarioEngineService:
         scenario_id: UUID,
         decision_id: UUID,
         request: ScenarioEvaluationRequest,
+        organization_id: UUID | None = None,
     ) -> ScenarioEvaluationResult:
 
         # Verify that the decision exists
-        result = await self.session.execute(
-            select(Decision).where(
-                Decision.id == decision_id,
-                Decision.scenario_id == scenario_id,
-            )
-        )
+        filters = [
+            Decision.id == decision_id,
+            Decision.scenario_id == scenario_id,
+        ]
+        if organization_id is not None:
+            filters.append(Decision.organization_id == organization_id)
+        result = await self.session.execute(select(Decision).where(*filters))
 
         decision = result.scalar_one_or_none()
 

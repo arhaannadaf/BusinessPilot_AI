@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import hash_password
 from app.database.models.identity.organization import Organization
 from app.database.models.identity.role import Role
 from app.database.models.identity.user import User
@@ -47,7 +48,7 @@ async def seed_user(session: AsyncSession) -> None:
         Last_name="Test",
         username="engine_test_user",
         email="engine_test@businesspilot.ai",
-        password_hash="development-only-password",
+        password_hash=hash_password("development-only-password"),
         is_active=True,
     )
 

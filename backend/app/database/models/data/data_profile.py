@@ -1,7 +1,7 @@
 
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, Index, Integer
+from sqlalchemy import ForeignKey, Index, Integer , Float, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -38,6 +38,29 @@ class DataProfile(BaseModel):
         Integer,
         nullable=False,
         default=0,
+    )
+
+    total_cells: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    completeness_percentage: Mapped[float] = mapped_column(
+        Float,
+        nullable=False,
+        default=0.0,
+    )
+    overall_quality_status: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default="COMPLETE",
+    )
+
+    duplicate_status: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default="NO_DUPLICATES",
     )
 
 

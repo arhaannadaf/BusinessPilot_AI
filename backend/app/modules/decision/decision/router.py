@@ -1,22 +1,16 @@
 from uuid import UUID
 
-from fastapi import(
-    APIRouter,
-    Depends,
-    HTTPException,
-    Query,
-    status
-)
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.api.dependencies.auth import get_current_actor
 from app.api.dependencies.decision import get_decision_service
-
 from app.modules.decision.decision.schemas import (
-    DecisionUpdate,
     DecisionCreate,
     DecisionResponse,
+    DecisionUpdate,
 )
-
 from app.modules.decision.decision.service import DecisionService
+from app.modules.identity.schemas import CurrentActor
 
 router = APIRouter(
     prefix="/decisions",
@@ -33,21 +27,13 @@ async def create_decision(
     service: DecisionService = Depends(
         get_decision_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-
-   # Temporary development context.
-    organization_id = UUID(
-            "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-        )
-    created_by = UUID(
-            "4421a369-a8e1-4e80-9de0-94e9913d0af5"
-        )
-
     try:
         return await service.create_decision(
             data=data,
-            organization_id=organization_id,
-            created_by=created_by,
+            organization_id=actor.organization_id,
+            created_by=actor.user_id,
         )
 
     except ValueError as exc:
@@ -74,15 +60,12 @@ async def list_decisions(
     service: DecisionService = Depends(
         get_decision_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-         "f98e1fc6-ca56-488e-988d-2fbace1c7640"   
-    )
-
     skip = (page - 1) * page_size
 
     return await service.list_decisions(
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
         skip=skip,
         limit=page_size,
     )
@@ -97,15 +80,11 @@ async def get_decision(
     service: DecisionService = Depends(
         get_decision_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-
-    organization_id = UUID(
-         "f98e1fc6-ca56-488e-988d-2fbace1c7640"   
-    )
-
     decision = await service.get_decision(
         decision_id=decision_id,
-        organization_id=organization_id
+        organization_id=actor.organization_id
     )
 
     if decision_id is None:
@@ -127,17 +106,13 @@ async def update_decision(
     data: DecisionUpdate,
     service: DecisionService =Depends(
         get_decision_service
-    )
+    ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-
-    organization_id = UUID(
-         "f98e1fc6-ca56-488e-988d-2fbace1c7640"   
-    )
-
     decision = await service.update_decision(
         decision_id=decision_id,
         data=data,
-        organization_id=organization_id
+        organization_id=actor.organization_id
     )
 
     if decision is None:
@@ -157,15 +132,11 @@ async def delete_decision(
     service: DecisionService = Depends(
         get_decision_service,
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-
-    organization_id = UUID(
-         "f98e1fc6-ca56-488e-988d-2fbace1c7640"   
-    )
-
     deleted = await service.delete_decision(
         decision_id=decision_id,
-        organization_id=organization_id
+        organization_id=actor.organization_id
     )
 
     if not deleted:

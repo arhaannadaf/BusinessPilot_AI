@@ -2,22 +2,20 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.api.dependencies.scenario import (
-    get_scenario_service,
-    get_scenario_engine_service
-    )
-
-from app.modules.decision.scenario.schemas import(
-    ScenarioCreate,
-    ScenarioUpdate,
-    ScenarioResponse,
-)
-from app.modules.decision.scenario.engine.schemas import(
+from app.api.dependencies.auth import get_current_actor
+from app.api.dependencies.scenario import get_scenario_engine_service, get_scenario_service
+from app.modules.decision.scenario.engine.schemas import (
     ScenarioEvaluationRequest,
     ScenarioEvaluationResult,
 )
-from app.modules.decision.scenario.service import ScenarioService
 from app.modules.decision.scenario.engine.service import ScenarioEngineService
+from app.modules.decision.scenario.schemas import (
+    ScenarioCreate,
+    ScenarioResponse,
+    ScenarioUpdate,
+)
+from app.modules.decision.scenario.service import ScenarioService
+from app.modules.identity.schemas import CurrentActor
 
 router = APIRouter(
     prefix="/scenarios",
@@ -33,21 +31,13 @@ router = APIRouter(
 
 async def create_scenario(
     data: ScenarioCreate,
-    service: ScenarioService = Depends(get_scenario_service)
+    service: ScenarioService = Depends(get_scenario_service),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-   # Temporary development values.
-    # Authentication will provide these later.
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-    created_by = UUID(
-        "4421a369-a8e1-4e80-9de0-94e9913d0af5"
-    )
-
     return await service.create_scenario(
         data=data,
-        organization_id=organization_id,
-        created_by=created_by,
+        organization_id=actor.organization_id,
+        created_by=actor.user_id,
     ) 
 
 @router.get(
@@ -58,16 +48,12 @@ async def list_scenarios(
     page: int = Query(default=1,ge=1),
     page_size: int = Query(default=20,ge=1,le=100),
     service:ScenarioService = Depends(get_scenario_service),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-
-    )
     skip = (page -1 ) * page_size
 
     return await service.list_scenarios(
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
         skip=skip,
         limit=page_size,
     )
@@ -78,15 +64,12 @@ async def list_scenarios(
 )
 async def get_scenario(
     scenario_id: UUID,
-    service: ScenarioService = Depends(get_scenario_service)
+    service: ScenarioService = Depends(get_scenario_service),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-         "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-
-    )
     scenario = await service.get_scenario(
         scenario_id=scenario_id,
-        organization_id=organization_id
+        organization_id=actor.organization_id
     )
 
     if scenario is None:
@@ -105,15 +88,12 @@ async def update_scenario(
     scenario_id: UUID,
     data: ScenarioUpdate,
     service: ScenarioService = Depends(get_scenario_service),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     scenario = await service.update_scenario(
         scenario_id=scenario_id,
         data=data,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
     )
 
     if scenario is None:
@@ -132,14 +112,11 @@ async def update_scenario(
 async def delete_scenario(
     scenario_id: UUID,
     service: ScenarioService = Depends(get_scenario_service),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     deleted = await service.delete_scenario(
         scenario_id=scenario_id,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
     )
 
     if not deleted:
@@ -161,6 +138,7 @@ async def evaluate_scenario(
     service: ScenarioEngineService = Depends(
         get_scenario_engine_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
     if request.scenario_id != scenario_id:
         raise HTTPException(
@@ -172,4 +150,5 @@ async def evaluate_scenario(
         scenario_id=scenario_id,
         decision_id=decision_id,
         request=request,
+        organization_id=actor.organization_id,
     )

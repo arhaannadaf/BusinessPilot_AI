@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class DataSourceCreate(BaseModel):
-    organization_id: UUID
+    organization_id: UUID | None = None
     name: str = Field(min_length=1, max_length=255)
     source_type: str = Field(min_length=1, max_length=50)
     description: str | None = None

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import(
+from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
@@ -8,15 +8,15 @@ from fastapi import(
     status,
 )
 
+from app.api.dependencies.auth import get_current_actor
 from app.api.dependencies.metric import get_decision_metric_service
-
-from app.modules.decision.metric.schemas import(
-    DecisionMetricUpdate,
+from app.modules.decision.metric.schemas import (
     DecisionMetricCreate,
     DecisionMetricResponse,
+    DecisionMetricUpdate,
 )
-
 from app.modules.decision.metric.service import DecisionMetricService
+from app.modules.identity.schemas import CurrentActor
 
 router = APIRouter(
     prefix="/decision-metrics",
@@ -31,16 +31,12 @@ router = APIRouter(
 async def create_decision_metric(
     data: DecisionMetricCreate,
     service: DecisionMetricService =Depends(get_decision_metric_service),
-
+    actor: CurrentActor = Depends(get_current_actor),
 ): 
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     try:
         return await service.create_metric(
             data=data,
-            organization_id=organization_id,
+            organization_id=actor.organization_id,
         )
     except ValueError as exc:
         raise HTTPException(
@@ -66,16 +62,13 @@ async def list_decision_metrics(
     service: DecisionMetricService = Depends(
         get_decision_metric_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     skip = (page - 1) * page_size
 
     return await service.list_metrics(
         decision_option_id=decision_option_id,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
         skip=skip,
         limit=page_size,
     )
@@ -90,15 +83,12 @@ async def get_decision_metric(
     service: DecisionMetricService = Depends(
         get_decision_metric_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     metric = await service.get_metric(
         metric_id=metric_id,
         decision_option_id=decision_option_id,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
     )
 
     if metric is None:
@@ -120,16 +110,13 @@ async def update_decision_metric(
     service: DecisionMetricService = Depends(
         get_decision_metric_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     metric = await service.update_metric(
         metric_id=metric_id,
         decision_option_id=decision_option_id,
         data=data,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
     )
 
     if metric is None:
@@ -150,15 +137,12 @@ async def delete_decision_metric(
     service: DecisionMetricService = Depends(
         get_decision_metric_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     deleted = await service.delete_metric(
         metric_id=metric_id,
         decision_option_id=decision_option_id,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
     )
 
     if not deleted:

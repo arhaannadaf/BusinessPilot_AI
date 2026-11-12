@@ -54,10 +54,11 @@ class LocalStorage:
         if not original_name:
             raise ValueError("Uploaded file must have a filename.")
 
-        if Path(original_name).suffix.lower() != ".csv":
-            raise ValueError("Only CSV files are supported.")
+        suffix = Path(original_name).suffix.lower()
+        if suffix not in {".csv", ".xlsx", ".xlsm"}:
+            raise ValueError("Only CSV, .xlsx, and .xlsm files are supported.")
 
-        stored_name = f"{uuid4().hex}.csv"
+        stored_name = f"{uuid4().hex}{suffix}"
         file_path = self.storage_dir / stored_name
         total_bytes = 0
 

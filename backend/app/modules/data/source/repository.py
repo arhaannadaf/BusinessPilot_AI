@@ -24,10 +24,12 @@ class DataSourceRepository:
     async def get_by_id(
         self,
         data_source_id: UUID,
+        organization_id: UUID,
     ) -> DataSource | None:
         result = await self.session.execute(
             select(DataSource).where(
-                DataSource.id == data_source_id
+                DataSource.id == data_source_id,
+                DataSource.organization_id == organization_id,
             )
         )
 
