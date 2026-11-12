@@ -22,6 +22,10 @@ class DataProfileRepository:
             column_count=report["column_count"],
             column_profiles=report["columns"],
             duplicate_rows=report["duplicate_rows"],
+            total_cells=report["total_cells"],
+            completeness_percentage=report["completeness_percentage"],
+            overall_quality_status=report["overall_quality_status"],
+            duplicate_status=report["duplicate_status"],
         )
 
         self.session.add(profile)

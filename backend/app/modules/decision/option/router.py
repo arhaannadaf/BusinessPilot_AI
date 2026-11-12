@@ -8,15 +8,15 @@ from fastapi import (
     status,
 )
 
+from app.api.dependencies.auth import get_current_actor
 from app.api.dependencies.option import get_decision_option_service
-
 from app.modules.decision.option.schemas import (
     DecisionOptionCreate,
     DecisionOptionResponse,
     DecisionOptionUpdate,
 )
-
 from app.modules.decision.option.service import DecisionOptionService
+from app.modules.identity.schemas import CurrentActor
 
 router = APIRouter(
     prefix="/decision-options",
@@ -33,15 +33,12 @@ async def create_decision_option(
     service: DecisionOptionService = Depends(
         get_decision_option_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-"f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     try:
         return await service.create_option(
             data=data,
-            organization_id=organization_id,
+            organization_id=actor.organization_id,
         )
     except ValueError as exc:
         raise HTTPException(
@@ -67,15 +64,13 @@ async def list_decision_option(
     service: DecisionOptionService = Depends(
         get_decision_option_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
     skip = (page - 1) * page_size
 
     return await service.list_options(
         decision_id=decision_id,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
         skip=skip,
         limit=page_size,
     )
@@ -90,15 +85,12 @@ async def get_decision_option(
     service:DecisionOptionService=Depends(
         get_decision_option_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id =UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     option = await service.get_option(
         option_id=option_id,
         decision_id=decision_id,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
     )
 
     if option is None:
@@ -116,18 +108,16 @@ async def update_decision_option(
     decision_id:UUID,
     option_id:UUID,
     data : DecisionOptionUpdate,
-    service: DecisionOptionService= Depends(
+    service:DecisionOptionService= Depends(
         get_decision_option_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
     option = await service.update_option(
         option_id=option_id,
         decision_id=decision_id,
         data=data,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
     )
 
     if option is None:
@@ -149,15 +139,12 @@ async def delete_decision_option(
     service: DecisionOptionService = Depends(
         get_decision_option_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     deleted = await service.delete_option(
         option_id=option_id,
         decision_id=decision_id,
-        organization_id=organization_id
+        organization_id=actor.organization_id
     )
     if not deleted:
         raise HTTPException(

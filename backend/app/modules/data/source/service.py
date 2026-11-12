@@ -16,9 +16,10 @@ class DataSourceService:
     async def create(
         self,
         data: DataSourceCreate,
+        organization_id: UUID,
     ) -> DataSource:
         data_source = DataSource(
-            organization_id=data.organization_id,
+            organization_id=organization_id,
             name=data.name,
             source_type=data.source_type,
             description=data.description,
@@ -31,9 +32,11 @@ class DataSourceService:
     async def get_by_id(
         self,
         data_source_id: UUID,
+        organization_id: UUID,
     ) -> DataSource:
         data_source = await self.repository.get_by_id(
-            data_source_id
+            data_source_id,
+            organization_id,
         )
 
         if not data_source:

@@ -4,11 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.session import get_db
 from app.modules.data.imports.repository import DataImportRepository
 from app.modules.data.imports.service import DataImportService
-from app.modules.data.source.repository import DataSourceRepository
-from app.modules.data.storage.local_storage import LocalStorage
 from app.modules.data.imports.staging_repository import (
     StagingRowRepository,
 )
+from app.modules.data.source.repository import DataSourceRepository
+from app.modules.data.storage.local_storage import LocalStorage
+
 
 def get_data_import_service(
     session: AsyncSession = Depends(get_db),

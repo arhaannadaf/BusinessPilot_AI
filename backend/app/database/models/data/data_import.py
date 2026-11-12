@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy import Integer, String, Text , BigInteger
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database.models.base_model import BaseModel
@@ -60,4 +60,9 @@ class DataImport(BaseModel):
         BigInteger,
         nullable=False,
         default=0,
+    )
+
+    schema_metadata: Mapped[dict | None] = mapped_column(
+        JSONB,
+        nullable=True,
     )

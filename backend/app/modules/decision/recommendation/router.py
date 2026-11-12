@@ -8,20 +8,18 @@ from fastapi import (
     status,
 )
 
+from app.api.dependencies.auth import get_current_actor
 from app.api.dependencies.recommendation import get_recommendation_service
-
-
+from app.modules.decision.recommendation.history_schemas import (
+    RecommendationHistoryResponse,
+)
 from app.modules.decision.recommendation.schemas import (
     RecommendationCreate,
     RecommendationResponse,
     RecommendationUpdate,
 )
-
 from app.modules.decision.recommendation.service import RecommendationService
-
-from app.modules.decision.recommendation.history_schemas import (
-    RecommendationHistoryResponse,
-)
+from app.modules.identity.schemas import CurrentActor
 
 router = APIRouter(
     prefix="/recommendations",
@@ -38,18 +36,12 @@ async def create_recommendation(
     service: RecommendationService = Depends(
         get_recommendation_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-
-    # Temporary development organization.
-    # Authentication will provide this later.
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     try:
         return await service.create_recommendation(
             data=data,
-            organization_id=organization_id,
+            organization_id=actor.organization_id,
         )
 
     except ValueError as exc:
@@ -67,11 +59,12 @@ async def generate_recommendation(
     weights: dict[str, float],
     learning_weight: float = 0.0,
     service: RecommendationService = Depends(get_recommendation_service),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
     try:
         return await service.generate_recommendation(
         decision_id=decision_id,
-        organization_id="f98e1fc6-ca56-488e-988d-2fbace1c7640",
+        organization_id=actor.organization_id,
         weights=weights,
         learning_weight=learning_weight,
     )
@@ -90,11 +83,12 @@ async def list_recommendation_history(
     service: RecommendationService = Depends(
         get_recommendation_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
     history = await service.list_recommendation_history(
         recommendation_id=recommendation_id,
         decision_id=decision_id,
-        organization_id="f98e1fc6-ca56-488e-988d-2fbace1c7640",
+        organization_id=actor.organization_id,
     )
 
     if history is None:
@@ -124,17 +118,13 @@ async def list_recommendations(
     service: RecommendationService = Depends(
         get_recommendation_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     skip = (page - 1) * page_size
 
     return await service.list_recommendations(
         decision_id=decision_id,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
         skip=skip,
         limit=page_size,
     )
@@ -149,16 +139,12 @@ async def get_recommendation(
     service: RecommendationService = Depends(
         get_recommendation_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     recommendation = await service.get_recommendation(
         recommendation_id=recommendation_id,
         decision_id=decision_id,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
     )
 
     if recommendation is None:
@@ -180,17 +166,13 @@ async def update_recommendation(
     service: RecommendationService = Depends(
         get_recommendation_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     recommendation = await service.update_recommendation(
         recommendation_id=recommendation_id,
         decision_id=decision_id,
         data=data,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
     )
 
     if recommendation is None:
@@ -211,16 +193,12 @@ async def delete_recommendation(
     service: RecommendationService = Depends(
         get_recommendation_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
-
-    organization_id = UUID(
-        "f98e1fc6-ca56-488e-988d-2fbace1c7640"
-    )
-
     deleted = await service.delete_recommendation(
         recommendation_id=recommendation_id,
         decision_id=decision_id,
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
     )
 
     if not deleted:

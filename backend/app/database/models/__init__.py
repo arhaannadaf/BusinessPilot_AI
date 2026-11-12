@@ -22,3 +22,5 @@ from app.database.models.data.data_source import DataSource
 from app.database.models.data.data_import import DataImport
 from app.database.models.data.staging_row import StagingRow
 from app.database.models.data.data_profile import DataProfile
+from app.database.models.data.data_quality_alert import DataQualityAlert
+from app.database.models.data.data_quality_alert_audit import DataQualityAlertAudit

@@ -2,6 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.api.dependencies.auth import get_current_actor
 from app.modules.data.source.dependency import (
     get_data_source_service,
 )
@@ -10,7 +11,7 @@ from app.modules.data.source.schemas import (
     DataSourceResponse,
 )
 from app.modules.data.source.service import DataSourceService
-
+from app.modules.identity.schemas import CurrentActor
 
 router = APIRouter(
     prefix="/data-sources",
@@ -28,9 +29,13 @@ async def create_data_source(
     service: DataSourceService = Depends(
         get_data_source_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
     try:
-        return await service.create(data)
+        return await service.create(
+            data,
+            organization_id=actor.organization_id,
+        )
 
     except ValueError as exc:
         raise HTTPException(
@@ -48,10 +53,12 @@ async def get_data_source(
     service: DataSourceService = Depends(
         get_data_source_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
     try:
         return await service.get_by_id(
-            data_source_id
+            data_source_id,
+            organization_id=actor.organization_id,
         )
 
     except ValueError as exc:
@@ -66,11 +73,11 @@ async def get_data_source(
     response_model=list[DataSourceResponse],
 )
 async def list_data_sources(
-    organization_id: UUID,
     service: DataSourceService = Depends(
         get_data_source_service
     ),
+    actor: CurrentActor = Depends(get_current_actor),
 ):
     return await service.list_by_organization(
-        organization_id
+        actor.organization_id
     )
